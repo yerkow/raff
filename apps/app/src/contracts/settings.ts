@@ -8,9 +8,15 @@ export const settingsContract = {
       email: z.string().nullable(),
       sslEnabled: z.string().nullable(),
       serverIp: z.string(),
+      serverIpOverride: z.string().nullable(),
       demoMode: z.boolean(),
     }),
   ),
+
+  setServerIp: oc
+    .route({ method: "PUT", path: "/settings/server-ip" })
+    .input(z.object({ serverIp: z.string() }))
+    .output(z.object({ success: z.boolean() })),
 
   verifyDns: oc
     .route({ method: "POST", path: "/settings/verify-dns" })

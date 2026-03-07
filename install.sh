@@ -17,7 +17,7 @@ timer() {
 }
 
 FROST_DIR="/opt/frost"
-FROST_REPO="https://github.com/elitan/frost"
+FROST_REPO="https://github.com/yerkow/raff"
 FROST_VERSION=""
 FROST_BRANCH=""
 USE_TARBALL=true
@@ -215,7 +215,8 @@ detect_single_zfs_pool() {
   fi
 }
 
-SERVER_IP=$(get_public_ipv4 || true)
+SERVER_IP=10.0.0.150
+#SERVER_IP=$(get_public_ipv4 || true)
 if ! is_valid_ipv4 "$SERVER_IP"; then
   SERVER_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '/src/ {print $7; exit}')
 fi

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Pencil, X, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DemoModeAlert } from "@/components/demo-mode-alert";
 import { SettingCard } from "@/components/setting-card";
@@ -31,6 +31,8 @@ export function SslSection() {
   const [pollingTimedOut, setPollingTimedOut] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [editingServerIp, setEditingServerIp] = useState(false);
+  const [serverIpInput, setServerIpInput] = useState("");
 
   const { data: settings } = useQuery(orpc.settings.get.queryOptions());
 
@@ -126,6 +128,30 @@ export function SslSection() {
     enableSslMutation.mutate({ domain, email, staging });
   }
 
+  const setServerIpMutation = useMutation(
+    orpc.settings.setServerIp.mutationOptions({
+      onSuccess: () => {
+        setEditingServerIp(false);
+        queryClient.invalidateQueries({ queryKey: orpc.settings.get.key() });
+      },
+    }),
+  );
+
+  function handleSaveServerIp() {
+    setServerIpMutation.mutate({ serverIp: serverIpInput });
+  }
+
+  function handleClearServerIp() {
+    setServerIpMutation.mutate(
+      { serverIp: "" },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: orpc.settings.get.key() });
+        },
+      },
+    );
+  }
+
   const enabling = enableSslMutation.isPending;
   const verifying = verifyDnsMutation.isPending;
 
@@ -210,6 +236,77 @@ export function SslSection() {
             </p>
           </div>
         )}
+
+        <div className="grid gap-2">
+          <Label className="text-sm text-neutral-400">Server IP</Label>
+          {editingServerIp ? (
+            <div className="flex gap-2">
+              <Input
+                value={serverIpInput}
+                onChange={(e) => setServerIpInput(e.target.value)}
+                placeholder={settings?.serverIp ?? "Auto-detected"}
+                className="h-10 border-neutral-800 bg-neutral-900 text-white placeholder:text-neutral-600 focus-visible:ring-neutral-700"
+              />
+              <Button
+                variant="secondary"
+                onClick={handleSaveServerIp}
+                disabled={setServerIpMutation.isPending}
+              >
+                {setServerIpMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Save"
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditingServerIp(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm text-neutral-100">
+                {settings?.serverIpOverride
+                  ? settings.serverIpOverride
+                  : (settings?.serverIp ?? "...")}
+              </span>
+              {settings?.serverIpOverride && (
+                <span className="rounded bg-yellow-900/40 px-1.5 py-0.5 text-xs text-yellow-400">
+                  override
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => {
+                  setServerIpInput(settings?.serverIpOverride ?? "");
+                  setEditingServerIp(true);
+                }}
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+              {settings?.serverIpOverride && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-neutral-500 hover:text-red-400"
+                  onClick={handleClearServerIp}
+                  disabled={setServerIpMutation.isPending}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          )}
+          <p className="text-xs text-neutral-500">
+            Override the auto-detected IP if your server is behind a proxy or
+            NAT. DNS verification will use this IP.
+          </p>
+        </div>
 
         <div className="grid gap-2">
           <Label htmlFor="ssl-domain" className="text-sm text-neutral-400">

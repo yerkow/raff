@@ -110,22 +110,36 @@ export const settings = {
     const isDev = process.env.NODE_ENV === "development";
     const demoMode = isDemoMode();
 
-    const [domain, email, sslEnabled, serverIp] = await Promise.all([
-      getSetting("domain"),
-      getSetting("email"),
-      getSetting("ssl_enabled"),
-      isDev
-        ? Promise.resolve("localhost")
-        : getServerIp().catch(() => "localhost"),
-    ]);
+    const [domain, email, sslEnabled, serverIp, serverIpOverride] =
+      await Promise.all([
+        getSetting("domain"),
+        getSetting("email"),
+        getSetting("ssl_enabled"),
+        isDev
+          ? Promise.resolve("localhost")
+          : getServerIp().catch(() => "localhost"),
+        getSetting("server_ip_override"),
+      ]);
 
     return {
       domain,
       email,
       sslEnabled,
       serverIp,
+      serverIpOverride,
       demoMode,
     };
+  }),
+
+  setServerIp: os.settings.setServerIp.handler(async ({ input }) => {
+    assertDemoWriteAllowed("server IP changes");
+    const { serverIp } = input;
+    if (serverIp) {
+      await setSetting("server_ip_override", serverIp);
+    } else {
+      await setSetting("server_ip_override", "");
+    }
+    return { success: true };
   }),
 
   verifyDns: os.settings.verifyDns.handler(async ({ input }) => {

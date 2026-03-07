@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 FROST_DIR="/opt/frost"
-FROST_REPO="https://github.com/elitan/frost"
+FROST_REPO="https://github.com/yerkow/raff"
 UPDATE_MARKER="$FROST_DIR/data/.update-requested"
 UPDATE_LOG="$FROST_DIR/data/.update-log"
 UPDATE_RESULT="$FROST_DIR/data/.update-result"

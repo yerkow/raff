@@ -263,6 +263,9 @@ export async function createWildcardDomain(
 }
 
 export async function getServerIp(): Promise<string> {
+  const override = await getSetting("server_ip_override");
+  if (override) return override;
+
   const services = ["https://api.ipify.org", "https://ifconfig.me/ip"];
 
   for (const url of services) {
